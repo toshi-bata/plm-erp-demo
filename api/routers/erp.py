@@ -1,10 +1,10 @@
-from typing import Any
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Any, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel
 from database import get_db
-from models import Part, ProductionOrder, Vendor
+from models import Part, ProductionOrder, Vendor, PurchaseItem
 from api.routers.plm import part_to_dict
 
 router = APIRouter()
@@ -38,6 +38,17 @@ def vendor_to_dict(v: Vendor) -> dict[str, Any]:
         "country": v.country,
         "rating": v.rating,
         "typical_lead_time_days": v.typical_lead_time_days,
+    }
+
+
+def purchase_item_to_dict(pi: PurchaseItem) -> dict[str, Any]:
+    return {
+        "item_id": pi.item_id,
+        "part_id": pi.part_id,
+        "vendor_id": pi.vendor_id,
+        "catalog_price_jpy": pi.catalog_price_jpy,
+        "min_order_qty": pi.min_order_qty,
+        "lead_time_days": pi.lead_time_days,
     }
 
 
@@ -135,12 +146,45 @@ def get_recommendation(part_id: str, db: Session = Depends(get_db)):
     return {"part_id": part_id, "recommendation": _recommendation(orders, db)}
 
 
+@router.get("/vendors")
+def list_vendors(db: Session = Depends(get_db)):
+    vendors = db.query(Vendor).order_by(Vendor.vendor_id).all()
+    return {"items": [vendor_to_dict(v) for v in vendors]}
+
+
 @router.get("/vendors/{vendor_id}")
 def get_vendor(vendor_id: str, db: Session = Depends(get_db)):
     vendor = db.get(Vendor, vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail=f"Vendor '{vendor_id}' not found")
     return vendor_to_dict(vendor)
+
+
+@router.get("/vendors/{vendor_id}/production-history")
+def get_vendor_production_history(vendor_id: str, db: Session = Depends(get_db)):
+    vendor = db.get(Vendor, vendor_id)
+    if not vendor:
+        raise HTTPException(status_code=404, detail=f"Vendor '{vendor_id}' not found")
+    orders = (
+        db.query(ProductionOrder)
+        .filter(ProductionOrder.vendor_id == vendor_id)
+        .order_by(ProductionOrder.delivery_date)
+        .all()
+    )
+    return {"vendor_id": vendor_id, "orders": [order_to_dict(o) for o in orders]}
+
+
+@router.get("/vendors/{vendor_id}/purchase-items")
+def get_vendor_purchase_items(vendor_id: str, db: Session = Depends(get_db)):
+    vendor = db.get(Vendor, vendor_id)
+    if not vendor:
+        raise HTTPException(status_code=404, detail=f"Vendor '{vendor_id}' not found")
+    items = (
+        db.query(PurchaseItem)
+        .filter(PurchaseItem.vendor_id == vendor_id)
+        .all()
+    )
+    return {"vendor_id": vendor_id, "items": [purchase_item_to_dict(i) for i in items]}
 
 
 # ---------------------------------------------------------------------------

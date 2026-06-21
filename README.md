@@ -2,25 +2,25 @@
 
 A self-contained PLM + ERP data service that lets **Claude** look up manufacturing records
 using CAD file names supplied by an external HOOPS AI MCP server.
-It provides a FastAPI REST API (port 8010) and an MCP server (port 8011) backed by a
-seeded SQLite database containing 20 sample parts, 6 vendors, and ~80 production orders
+It provides a FastAPI REST API (port 8010), an MCP server, and a **React web browser UI** (port 5173)
+backed by a seeded SQLite database containing 20 sample parts, 6 vendors, and ~80 production orders
 representing a realistic discrete-manufacturing environment (turned parts, sheet metal, castings).
 
 ---
 
 ## Setup
 
-### 1. Install dependencies
+### 1. Install dependencies (backend)
 
 ```bash
 cd plm-erp-demo
-pip install -r requirements.txt
+uv sync
 ```
 
 ### 2. Create and seed the database
 
 ```bash
-python init_db.py
+uv run python init_db.py
 ```
 
 This creates `plm_erp.db` in the project root and populates all tables.
@@ -28,12 +28,29 @@ This creates `plm_erp.db` in the project root and populates all tables.
 ### 3. Start the FastAPI server (port 8010)
 
 ```bash
-uvicorn api.main:app --host 0.0.0.0 --port 8010 --reload
+uv run uvicorn api.main:app --host 0.0.0.0 --port 8010 --reload
 ```
 
 Interactive docs: http://localhost:8010/docs
 
-### 4. Register the MCP server with Claude Desktop
+### 4. Start the Web Browser UI (port 5173)
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Open http://localhost:5173 in your browser.
+
+The UI connects to the FastAPI backend at `http://localhost:8010` by default.
+To change the URL, edit `web/.env`:
+
+```
+VITE_API_BASE_URL=http://localhost:8010
+```
+
+### 5. Register the MCP server with Claude Desktop
 
 Claude Desktop manages the MCP server process automatically via stdio — **no manual server startup required.**
 
@@ -73,13 +90,18 @@ python mcp_server.py --http
 
 | Method | Path | Description |
 |--------|------|-------------|
+| GET | `/plm/parts` | List parts (filters: `search`, `status`, `material`, `skip`, `limit`) |
 | GET | `/plm/parts/{part_id}` | Fetch part by ID |
 | GET | `/plm/parts/by-cad-file/{cad_file_name}` | Fetch part by CAD filename |
-| GET | `/plm/parts/{part_id}/bom` | Bill of Materials |
-| GET | `/erp/parts/{part_id}/production-history` | All production orders |
+| GET | `/plm/parts/{part_id}/bom` | Bill of Materials (child components) |
+| GET | `/plm/parts/{part_id}/where-used` | Reverse BOM (parent assemblies) |
+| GET | `/erp/vendors` | List all vendors |
+| GET | `/erp/vendors/{vendor_id}` | Vendor details |
+| GET | `/erp/vendors/{vendor_id}/production-history` | Orders handled by vendor |
+| GET | `/erp/vendors/{vendor_id}/purchase-items` | Purchase catalog items for vendor |
+| GET | `/erp/parts/{part_id}/production-history` | All production orders for a part |
 | GET | `/erp/parts/{part_id}/cost-summary` | Avg/min/max cost by production type |
 | GET | `/erp/parts/{part_id}/recommendation` | Cheapest / fastest / best-quality option |
-| GET | `/erp/vendors/{vendor_id}` | Vendor details |
 | POST | `/query/by-cad-files` | **Bulk lookup** — primary endpoint for Claude |
 
 ### Bulk query example
