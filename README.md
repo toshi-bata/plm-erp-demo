@@ -33,10 +33,38 @@ uvicorn api.main:app --host 0.0.0.0 --port 8010 --reload
 
 Interactive docs: http://localhost:8010/docs
 
-### 4. Start the MCP server (port 8011)
+### 4. Register the MCP server with Claude Desktop
+
+Claude Desktop manages the MCP server process automatically via stdio — **no manual server startup required.**
+
+In Claude Desktop, go to **Settings → Developer → Edit Config** to open the config file.
+
+Add the following entry (adjust the directory path as needed):
+
+```json
+{
+  "mcpServers": {
+    "plm-erp-demo": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "D:\\git\\plm-erp-demo",
+        "mcp_server.py"
+      ]
+    }
+  }
+}
+```
+
+Restart Claude Desktop. The MCP server will appear under **Settings → Developer**.
+
+#### HTTP mode (optional)
+
+To run the MCP server manually as an HTTP server on port 8011:
 
 ```bash
-python mcp_server.py
+python mcp_server.py --http
 ```
 
 ---
@@ -64,7 +92,7 @@ curl -X POST http://localhost:8010/query/by-cad-files \
 
 ---
 
-## MCP Tools (port 8011)
+## MCP Tools
 
 | Tool | Description |
 |------|-------------|

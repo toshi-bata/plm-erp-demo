@@ -197,4 +197,8 @@ def query_by_cad_files(cad_file_names: list[str]) -> list[dict]:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http", port=8011)
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "--http":
+        mcp.run(transport="streamable-http", port=8011)
+    else:
+        mcp.run(transport="stdio")
