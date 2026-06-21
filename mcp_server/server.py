@@ -1,6 +1,6 @@
 """
 MCP server for PLM/ERP demo.
-Run:  uv run mcp/server.py
+Run:  uv run mcp_server/server.py
 Exposes tools that Claude can call after receiving CAD file names from HOOPS AI MCP.
 """
 import sys
