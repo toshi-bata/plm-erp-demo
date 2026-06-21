@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel
-from database import get_db
-from models import Part, ProductionOrder, Vendor, PurchaseItem
+from db.database import get_db
+from db.models import Part, ProductionOrder, Vendor, PurchaseItem
 from api.routers.plm import part_to_dict
 
 router = APIRouter()

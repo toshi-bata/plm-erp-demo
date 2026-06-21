@@ -1,10 +1,14 @@
 """
 Run this script once to create and seed the PLM/ERP SQLite database.
-    python init_db.py
+    uv run python -m db.init_db
 """
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from datetime import date
-from database import engine, SessionLocal
-from models import Base, Part, PartStructure, Vendor, ProductionOrder, PurchaseItem
+from db.database import engine, SessionLocal
+from db.models import Base, Part, PartStructure, Vendor, ProductionOrder, PurchaseItem
 
 
 def create_tables():

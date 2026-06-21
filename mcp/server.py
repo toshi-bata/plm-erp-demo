@@ -1,17 +1,17 @@
 """
 MCP server for PLM/ERP demo.
-Run:  python mcp_server.py
+Run:  uv run mcp/server.py
 Exposes tools that Claude can call after receiving CAD file names from HOOPS AI MCP.
 """
 import sys
 from pathlib import Path
 
 # Allow imports from the project root when run directly
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from fastmcp import FastMCP
-from database import SessionLocal
-from models import Part, ProductionOrder, Vendor
+from db.database import SessionLocal
+from db.models import Part, ProductionOrder, Vendor
 
 mcp = FastMCP(
     name="PLM ERP Demo",

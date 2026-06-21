@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Text, Float, Date, ForeignKey
 from sqlalchemy.orm import relationship
-from database import Base
+from db.database import Base
 
 
 class Part(Base):

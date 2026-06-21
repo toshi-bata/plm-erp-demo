@@ -20,7 +20,7 @@ uv sync
 ### 2. Create and seed the database
 
 ```bash
-uv run python init_db.py
+uv run python -m db.init_db
 ```
 
 This creates `plm_erp.db` in the project root and populates all tables.
@@ -67,7 +67,7 @@ Add the following entry (adjust the directory path as needed):
         "run",
         "--directory",
         "D:\\git\\plm-erp-demo",
-        "mcp_server.py"
+        "mcp/server.py"
       ]
     }
   }
@@ -81,7 +81,7 @@ Restart Claude Desktop. The MCP server will appear under **Settings → Develope
 To run the MCP server manually as an HTTP server on port 8011:
 
 ```bash
-python mcp_server.py --http
+uv run mcp/server.py --http
 ```
 
 ---
