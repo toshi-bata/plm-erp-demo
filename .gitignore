@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+plm_erp.db
+.env
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
