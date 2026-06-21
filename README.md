@@ -10,6 +10,14 @@ representing a realistic discrete-manufacturing environment (turned parts, sheet
 
 ## Setup
 
+### 0. Install uv (first time only)
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Then **restart your terminal** to make the `uv` command available.
+
 ### 1. Install dependencies (backend)
 
 ```bash
