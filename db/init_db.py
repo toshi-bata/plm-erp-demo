@@ -17,6 +17,7 @@ Orders per part: 0 E (random, seeded per file for reproducibility).
 
 import calendar
 import datetime
+import math
 import pathlib
 import random
 import sys
@@ -591,6 +592,9 @@ def seed(db):
 
         n_orders = rng.choices(range(6), weights=ORDER_COUNT_WEIGHTS)[0]
 
+        # Base unit cost for this part; larger lots get same or lower price
+        base_unit_cost = round(rng.uniform(20.0, 8000.0), 0)
+
         for _ in range(n_orders):
             # Production type
             roll = rng.random()
@@ -605,8 +609,10 @@ def seed(db):
                 ptype     = "purchase"
                 vendor_id = rng.choice(cfg["vendor_purchase"])
 
-            qty       = rng.randint(5, 300)
-            unit_cost = round(rng.uniform(20.0, 8000.0), 0)
+            qty = rng.randint(5, 300)
+            # Quantity discount: monotonically increases with lot size (log scale, capped at 30%)
+            discount_rate = min(0.30, 0.08 * math.log(qty / 5.0 + 1.0))
+            unit_cost = max(1.0, round(base_unit_cost * (1.0 - discount_rate), 0))
             if ptype == "purchase":
                 lead_days = rng.randint(2, 5)
                 del_days  = rng.randint(2, 7)
