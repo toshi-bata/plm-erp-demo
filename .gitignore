@@ -17,3 +17,7 @@ web/.env
 
 # FabWave
 fabwave/
+
+# Generated quotations (keep folder, ignore contents)
+demo/quotations/*
+!demo/quotations/.gitkeep
