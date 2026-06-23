@@ -66,15 +66,23 @@ def _load_cad_files() -> list[tuple[str, str]]:
 # ---------------------------------------------------------------------------
 # Material pools
 # ---------------------------------------------------------------------------
-_MAT_STEEL  = ["Carbon Steel S45C", "Carbon Steel S35C", "Carbon Steel SS400"]
-_MAT_SUS    = ["SUS304", "SUS316", "SUS316L"]
-_MAT_SCM    = ["SCM440"] * 6 + ["SCM435", "SCM415"]  # SCM440: 75 %
-_MAT_BRG    = ["SUJ2", "SUJ2 (HRC 60+)"]
-_MAT_RUBBER = ["NBR", "FKM", "EPDM", "Silicone"]
-_MAT_BRASS  = ["C3604BD (Brass)", "C3771BD (Brass)"]
-_MAT_AL     = ["A5052 (Al)", "A6061 (Al)"]
-_MAT_CAST   = ["FC250 (Gray Cast Iron)", "FCD400 (Ductile Iron)"]
-_MAT_PLASTIC= ["Nylon 66", "POM", "PTFE"]
+_MAT_IRON    = ["Carbon Steel S45C", "Carbon Steel SS400", "FC250 (Gray Cast Iron)"]
+# S45C: representative machine structural steel
+# SS400: representative general structural steel
+# FC250: representative cast iron (common in cast parts)
+
+_MAT_SUS     = ["SUS304", "SUS316"]
+# SUS304: general-purpose stainless steel
+# SUS316: enhanced corrosion resistance (chemical/marine environments)
+
+_MAT_AL      = ["A5052 (Al)", "A6061 (Al)"]
+# A5052: prioritizes formability
+# A6061: prioritizes strength and mechanical properties
+
+_MAT_PLASTIC = ["POM", "Nylon 66", "PTFE"]
+# POM: dimensional precision and versatility
+# Nylon 66: wear resistance and toughness
+# PTFE: heat resistance, chemical resistance, low friction
 
 # ---------------------------------------------------------------------------
 # Category rules
@@ -86,159 +94,190 @@ _MAT_PLASTIC= ["Nylon 66", "POM", "PTFE"]
 # vendor_outsource / vendor_purchase: list of vendor IDs to pick from
 # ---------------------------------------------------------------------------
 CATEGORY_RULES = [
-    # ---- Fasteners / standard hardware --------------------------------
+    # ---- Piping --------------------------------------------------------
+    # Primary: stainless (corrosion resistance for fluid lines)
     ("pipe_fitting", dict(
         prefix="FTG",  name="Pipe Fitting",
-        mat=_MAT_SUS,  weight=(0.05, 0.55),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.05, 0.55),
         vendor_outsource=["V006"], vendor_purchase=["V006"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-FTG",
         revisions=["A", "B"],
     )),
     ("pipe_joint", dict(
         prefix="JNT",  name="Pipe Joint",
-        mat=_MAT_SUS,  weight=(0.08, 0.45),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.08, 0.45),
         vendor_outsource=["V006"], vendor_purchase=["V006"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-JNT",
         revisions=["A", "B"],
     )),
     ("pipe", dict(
         prefix="PIPE", name="Pipe",
-        mat=_MAT_SUS + ["SGP", "STPG370"],  weight=(0.30, 3.50),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.30, 3.50),
         vendor_outsource=["V006", "V001"], vendor_purchase=["V006"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-PIPE",
         revisions=["A", "B"],
     )),
+    # ---- Rotating / mechanical -----------------------------------------
+    # Primary: iron/steel (strength, machinability for shafts and rollers)
     ("roller", dict(
         prefix="ROLL", name="Conveyor Roller",
-        mat=_MAT_STEEL + _MAT_SUS, weight=(0.50, 6.00),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_SUS,
+        weight=(0.50, 6.00),
         vendor_outsource=["V004", "V001"], vendor_purchase=["V004"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-ROLL",
         revisions=["A", "B", "C"],
     )),
     ("rotary_shaft", dict(
         prefix="SHFT", name="Rotary Shaft",
-        mat=_MAT_SCM + _MAT_STEEL, weight=(0.50, 18.00),
+        mat_primary=["Carbon Steel S45C"], mat_secondary=["Carbon Steel SS400"] + _MAT_SUS,
+        weight=(0.50, 18.00),
         vendor_outsource=["V001", "V008"], vendor_purchase=["V001"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-SHFT",
         revisions=["A", "B"],
     )),
     ("shaft_collar", dict(
         prefix="COLL", name="Shaft Collar",
-        mat=_MAT_STEEL + _MAT_SUS, weight=(0.05, 0.85),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_SUS,
+        weight=(0.05, 0.85),
         vendor_outsource=["V001", "V004"], vendor_purchase=["V001", "V004"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-COLL",
         revisions=["A"],
     )),
+    # ---- Fasteners / standard hardware --------------------------------
+    # Primary: stainless (corrosion resistance for washers/screws/bolts)
     ("sleeve washer", dict(
         prefix="SWSH", name="Sleeve Washer",
-        mat=_MAT_SUS + _MAT_BRASS, weight=(0.01, 0.20),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.01, 0.20),
         vendor_outsource=["V001", "V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-SWSH",
         revisions=["A"],
     )),
     ("washer", dict(
         prefix="WSHR", name="Washer",
-        mat=_MAT_SUS + _MAT_STEEL, weight=(0.001, 0.12),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.001, 0.12),
         vendor_outsource=["V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-WSHR",
         revisions=["A"],
     )),
     ("socket_head_screw", dict(
         prefix="SCRS", name="Socket Head Cap Screw",
-        mat=_MAT_SUS + _MAT_SCM, weight=(0.002, 0.06),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.002, 0.06),
         vendor_outsource=["V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-SCRS",
         revisions=["A"],
     )),
     ("socket-c", dict(
         prefix="SCRC", name="Socket Cap Screw",
-        mat=_MAT_SUS + _MAT_SCM, weight=(0.002, 0.06),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.002, 0.06),
         vendor_outsource=["V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-SCRC",
         revisions=["A"],
     )),
     ("slotted_flat_head", dict(
         prefix="SFHS", name="Slotted Flat Head Screw",
-        mat=_MAT_SUS, weight=(0.001, 0.03),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.001, 0.03),
         vendor_outsource=["V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-SFHS",
         revisions=["A"],
     )),
+    # Hex head screws: carbon steel preferred for high-strength applications
     ("hex_head_s", dict(
         prefix="HEXS", name="Hex Head Screw",
-        mat=_MAT_SCM + _MAT_SUS, weight=(0.005, 0.12),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_SUS,
+        weight=(0.005, 0.12),
         vendor_outsource=["V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-HEXS",
         revisions=["A"],
     )),
     ("headless", dict(
         prefix="HDLS", name="Headless Set Screw",
-        mat=_MAT_SUS + _MAT_SCM, weight=(0.001, 0.02),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.001, 0.02),
         vendor_outsource=["V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-HDLS",
         revisions=["A"],
     )),
     ("thumb_scre", dict(
         prefix="THBS", name="Thumb Screw",
-        mat=_MAT_SUS, weight=(0.005, 0.06),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.005, 0.06),
         vendor_outsource=["V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-THBS",
         revisions=["A"],
     )),
     ("eyesbolt", dict(
         prefix="EYEB", name="Eye Bolt",
-        mat=_MAT_SUS + _MAT_STEEL, weight=(0.05, 0.60),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.05, 0.60),
         vendor_outsource=["V003", "V001"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-EYEB",
         revisions=["A"],
     )),
     ("holebolt", dict(
         prefix="HOLB", name="Hole Bolt",
-        mat=_MAT_SUS + _MAT_STEEL, weight=(0.03, 0.25),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.03, 0.25),
         vendor_outsource=["V003", "V001"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-HOLB",
         revisions=["A"],
     )),
     ("cotter_pin", dict(
         prefix="COTP", name="Cotter Pin",
-        mat=_MAT_SUS + _MAT_STEEL, weight=(0.001, 0.06),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.001, 0.06),
         vendor_outsource=["V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-COTP",
         revisions=["A"],
     )),
+    # Retaining rings: carbon steel preferred for spring-like properties
     ("external", dict(
         prefix="ERNG", name="External Retaining Ring",
-        mat=_MAT_STEEL + _MAT_SUS, weight=(0.002, 0.06),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_SUS,
+        weight=(0.002, 0.06),
         vendor_outsource=["V003", "V001"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-ERNG",
         revisions=["A"],
     )),
     # Note: "bolt" must come AFTER "eyesbolt" / "holebolt"
+    # Hex bolts: carbon steel preferred for structural fastening
     ("bolt", dict(
         prefix="BOLT", name="Hex Bolt",
-        mat=_MAT_SUS + _MAT_SCM, weight=(0.01, 0.20),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_SUS,
+        weight=(0.01, 0.20),
         vendor_outsource=["V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-BOLT",
         revisions=["A"],
     )),
     ("nut", dict(
         prefix="NUT",  name="Hex Nut",
-        mat=_MAT_SUS + _MAT_STEEL, weight=(0.003, 0.06),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_SUS,
+        weight=(0.003, 0.06),
         vendor_outsource=["V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-NUT",
         revisions=["A"],
     )),
     # ---- Bearings / bushings ------------------------------------------
+    # Bearings: high-carbon steel (S45C as proxy); bushings: plastics for self-lubrication
     ("bearing", dict(
         prefix="BRG",  name="Ball Bearing",
-        mat=_MAT_BRG,  weight=(0.05, 2.00),
+        mat_primary=["Carbon Steel S45C"], mat_secondary=["Carbon Steel SS400"],
+        weight=(0.05, 2.00),
         vendor_outsource=["V002"], vendor_purchase=["V002"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-BRG",
         revisions=["A"],
     )),
     ("bushing_da", dict(
         prefix="DBSH", name="Damping Bushing",
-        mat=_MAT_RUBBER + _MAT_STEEL, weight=(0.05, 0.60),
+        mat_primary=_MAT_PLASTIC, mat_secondary=_MAT_AL,
+        weight=(0.05, 0.60),
         vendor_outsource=["V006", "V008"], vendor_purchase=["V006"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-DBSH",
         revisions=["A"],
@@ -246,22 +285,25 @@ CATEGORY_RULES = [
     # Note: "bushing_da" before "bushing"
     ("bushing", dict(
         prefix="BUSH", name="Bushing",
-        mat=_MAT_BRASS + _MAT_STEEL + _MAT_PLASTIC, weight=(0.02, 0.60),
+        mat_primary=_MAT_PLASTIC, mat_secondary=_MAT_AL,
+        weight=(0.02, 0.60),
         vendor_outsource=["V001", "V008"], vendor_purchase=["V003", "V001"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-BUSH",
         revisions=["A"],
     )),
     ("collet", dict(
         prefix="COLT", name="Collet",
-        mat=_MAT_BRG + _MAT_STEEL, weight=(0.02, 0.25),
+        mat_primary=["Carbon Steel S45C"], mat_secondary=_MAT_SUS,
+        weight=(0.02, 0.25),
         vendor_outsource=["V002", "V001"], vendor_purchase=["V002"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-COLT",
         revisions=["A"],
     )),
     # ---- Seals / gaskets -----------------------------------------------
+    # Primary: PTFE/plastic (chemical resistance, compressibility for sealing)
     ("gasket", dict(
         prefix="GASK", name="Gasket",
-        mat=_MAT_RUBBER + ["Compressed Fiber", "Spiral Wound"],
+        mat_primary=_MAT_PLASTIC, mat_secondary=_MAT_SUS,
         weight=(0.005, 0.15),
         vendor_outsource=["V006"], vendor_purchase=["V006"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-GASK",
@@ -269,57 +311,66 @@ CATEGORY_RULES = [
     )),
     ("grommet", dict(
         prefix="GROM", name="Grommet",
-        mat=_MAT_RUBBER + _MAT_PLASTIC, weight=(0.001, 0.06),
+        mat_primary=_MAT_PLASTIC, mat_secondary=_MAT_AL,
+        weight=(0.001, 0.06),
         vendor_outsource=["V006"], vendor_purchase=["V006"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-GROM",
         revisions=["A"],
     )),
     ("o_ring", dict(
         prefix="ORING", name="O-Ring",
-        mat=_MAT_RUBBER, weight=(0.001, 0.025),
+        mat_primary=_MAT_PLASTIC, mat_secondary=_MAT_SUS,
+        weight=(0.001, 0.025),
         vendor_outsource=["V006"], vendor_purchase=["V006"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-ORING",
         revisions=["A"],
     )),
     # ---- Gears / power transmission ------------------------------------
+    # Primary: carbon steel S45C (hardness, wear resistance for gears/shafts)
     ("keyway_sha", dict(
         prefix="KWSH", name="Keyway Shaft",
-        mat=_MAT_SCM + _MAT_STEEL, weight=(0.30, 12.00),
+        mat_primary=["Carbon Steel S45C"], mat_secondary=["Carbon Steel SS400"] + _MAT_SUS,
+        weight=(0.30, 12.00),
         vendor_outsource=["V001", "V008"], vendor_purchase=["V001"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-KWSH",
         revisions=["A", "B"],
     )),
     ("machine_ke", dict(
         prefix="MKEY", name="Machine Key",
-        mat=_MAT_STEEL + _MAT_SUS, weight=(0.005, 0.12),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_SUS,
+        weight=(0.005, 0.12),
         vendor_outsource=["V001", "V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-MKEY",
         revisions=["A"],
     )),
     ("miter ge", dict(
         prefix="MTRG", name="Miter Gear",
-        mat=_MAT_SCM + _MAT_STEEL, weight=(0.10, 2.50),
+        mat_primary=["Carbon Steel S45C"], mat_secondary=["Carbon Steel SS400", "FC250 (Gray Cast Iron)"],
+        weight=(0.10, 2.50),
         vendor_outsource=["V005", "V008"], vendor_purchase=["V005"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-MTRG",
         revisions=["A", "B"],
     )),
     ("idler sp", dict(
         prefix="IDSP", name="Idler Sprocket",
-        mat=_MAT_STEEL + _MAT_SCM, weight=(0.20, 2.50),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_AL,
+        weight=(0.20, 2.50),
         vendor_outsource=["V005", "V004"], vendor_purchase=["V005"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-IDSP",
         revisions=["A"],
     )),
     ("sprocket", dict(
         prefix="SPKT", name="Sprocket",
-        mat=_MAT_STEEL + _MAT_SCM, weight=(0.20, 3.50),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_AL,
+        weight=(0.20, 3.50),
         vendor_outsource=["V005", "V004"], vendor_purchase=["V005"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-SPKT",
         revisions=["A", "B"],
     )),
     ("gear rod", dict(
         prefix="GRDR", name="Gear Rod",
-        mat=_MAT_SCM + _MAT_STEEL, weight=(0.20, 4.00),
+        mat_primary=["Carbon Steel S45C"], mat_secondary=["Carbon Steel SS400", "FC250 (Gray Cast Iron)"],
+        weight=(0.20, 4.00),
         vendor_outsource=["V005", "V001"], vendor_purchase=["V005"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-GRDR",
         revisions=["A"],
@@ -327,64 +378,75 @@ CATEGORY_RULES = [
     # Note: "gear" after "gear rod", "miter ge"
     ("gear", dict(
         prefix="GEAR", name="Spur Gear",
-        mat=_MAT_SCM + _MAT_STEEL, weight=(0.10, 6.00),
+        mat_primary=["Carbon Steel S45C"], mat_secondary=["Carbon Steel SS400", "FC250 (Gray Cast Iron)"],
+        weight=(0.10, 6.00),
         vendor_outsource=["V005", "V008"], vendor_purchase=["V005"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-GEAR",
         revisions=["A", "B"],
     )),
     # ---- Structural / enclosures ---------------------------------------
+    # Brackets/plates: carbon steel (SS400 for structural rigidity)
+    # Enclosures/routing: aluminum (lightweight, good formability)
     ("bracket", dict(
         prefix="BKT",  name="Mounting Bracket",
-        mat=_MAT_STEEL + _MAT_SUS + _MAT_AL, weight=(0.10, 4.00),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_AL,
+        weight=(0.10, 4.00),
         vendor_outsource=["V007", "V008"], vendor_purchase=["V007"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-BKT",
         revisions=["A", "B", "C"],
     )),
     ("box", dict(
         prefix="ENCL", name="Enclosure Box",
-        mat=_MAT_STEEL + _MAT_AL + _MAT_SUS, weight=(0.30, 6.00),
+        mat_primary=_MAT_AL, mat_secondary=_MAT_IRON,
+        weight=(0.30, 6.00),
         vendor_outsource=["V007", "V008"], vendor_purchase=["V007"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-ENCL",
         revisions=["A", "B"],
     )),
     ("rectangu", dict(
         prefix="RECT", name="Rectangular Plate",
-        mat=_MAT_STEEL + _MAT_SUS + _MAT_AL, weight=(0.20, 12.00),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_AL,
+        weight=(0.20, 12.00),
         vendor_outsource=["V007", "V003"], vendor_purchase=["V007"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-RECT",
         revisions=["A", "B"],
     )),
     ("routing", dict(
         prefix="RTBK", name="Routing Bracket",
-        mat=_MAT_STEEL + _MAT_AL, weight=(0.10, 1.80),
+        mat_primary=_MAT_AL, mat_secondary=_MAT_IRON,
+        weight=(0.10, 1.80),
         vendor_outsource=["V007", "V008"], vendor_purchase=["V007"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-RTBK",
         revisions=["A"],
     )),
     ("strut ch", dict(
         prefix="STRC", name="Strut Channel",
-        mat=_MAT_STEEL + _MAT_SUS, weight=(0.30, 6.00),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_SUS,
+        weight=(0.30, 6.00),
         vendor_outsource=["V007", "V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-STRC",
         revisions=["A"],
     )),
     ("tag hold", dict(
         prefix="TAGHD", name="Tag Holder",
-        mat=_MAT_SUS + _MAT_STEEL, weight=(0.02, 0.25),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.02, 0.25),
         vendor_outsource=["V007", "V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-TAGHD",
         revisions=["A"],
     )),
     ("webbing", dict(
         prefix="WBCL", name="Webbing Clip",
-        mat=_MAT_SUS + _MAT_STEEL, weight=(0.02, 0.25),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.02, 0.25),
         vendor_outsource=["V007", "V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-WBCL",
         revisions=["A"],
     )),
     ("wide gri", dict(
         prefix="WDGR", name="Wide Grip",
-        mat=_MAT_SUS + _MAT_STEEL, weight=(0.05, 0.60),
+        mat_primary=_MAT_SUS, mat_secondary=_MAT_IRON,
+        weight=(0.05, 0.60),
         vendor_outsource=["V007", "V003"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-WDGR",
         revisions=["A"],
@@ -392,7 +454,8 @@ CATEGORY_RULES = [
     # ---- Fallback ------------------------------------------------------
     ("", dict(
         prefix="PART", name="Mechanical Part",
-        mat=_MAT_STEEL, weight=(0.05, 3.00),
+        mat_primary=_MAT_IRON, mat_secondary=_MAT_SUS,
+        weight=(0.05, 3.00),
         vendor_outsource=["V001", "V007", "V008"], vendor_purchase=["V003"],
         po_mix=[0.75, 0.20, 0.05], draw_prefix="DWG-PART",
         revisions=["A"],
@@ -490,7 +553,13 @@ def seed(db):
         # Per-file seeded RNG so the output is deterministic
         rng = random.Random(cad_name)
 
-        mat     = rng.choice(cfg["mat"])
+        mat_primary   = cfg["mat_primary"]
+        mat_secondary = cfg.get("mat_secondary", [])
+        # 75 % from category-preferred primary materials, 25 % from secondary
+        if mat_secondary and rng.random() < 0.75:
+            mat = rng.choice(mat_primary)
+        else:
+            mat = rng.choice(mat_secondary if mat_secondary else mat_primary)
         weight  = round(rng.uniform(*cfg["weight"]), 3)
         rev     = rng.choice(cfg["revisions"])
         drawing = f"{cfg['draw_prefix']}-{seq:04d}"
