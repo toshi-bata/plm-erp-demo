@@ -3,6 +3,20 @@ from sqlalchemy.orm import relationship
 from db.database import Base
 
 
+class Customer(Base):
+    __tablename__ = "customers"
+
+    customer_id = Column(Text, primary_key=True)
+    company_name = Column(Text, nullable=False)
+    contact_name = Column(Text, nullable=False)
+    address1 = Column(Text, nullable=False)
+    address2 = Column(Text, nullable=False)
+    email = Column(Text, nullable=False)
+    phone = Column(Text, nullable=False)
+
+    production_orders = relationship("ProductionOrder", back_populates="customer")
+
+
 class Part(Base):
     __tablename__ = "parts"
 
@@ -59,6 +73,7 @@ class ProductionOrder(Base):
     part_id = Column(Text, ForeignKey("parts.part_id"), nullable=False)
     production_type = Column(Text, nullable=False)
     vendor_id = Column(Text, ForeignKey("vendors.vendor_id"), nullable=True)
+    customer_id = Column(Text, ForeignKey("customers.customer_id"), nullable=False)
     quantity = Column(Integer, nullable=False)
     unit_cost_jpy = Column(Float, nullable=False)
     lead_time_days = Column(Integer, nullable=False)
@@ -68,6 +83,7 @@ class ProductionOrder(Base):
 
     part = relationship("Part", back_populates="production_orders")
     vendor = relationship("Vendor", back_populates="production_orders")
+    customer = relationship("Customer", back_populates="production_orders")
 
 
 class PurchaseItem(Base):

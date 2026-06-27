@@ -25,7 +25,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 from db.database import engine, SessionLocal
-from db.models import Base, Part, PartStructure, Vendor, ProductionOrder, PurchaseItem
+from db.models import Base, Part, PartStructure, Vendor, Customer, ProductionOrder, PurchaseItem
 
 # ---------------------------------------------------------------------------
 # CAD file list: prefer static catalog, fall back to live fabwave scan
@@ -532,6 +532,56 @@ def seed(db):
     db.flush()
 
     # -----------------------------------------------------------------------
+    # Customers (取引先 / 発注元)
+    # -----------------------------------------------------------------------
+    customers = [
+        Customer(customer_id="C001", company_name="株式会社山田製作所",
+                 contact_name="山田 一郎", address1="東京都千代田区丸の内1-1-1",
+                 address2="千代田区, 東京都", email="yamada@yamada-ss.co.jp",
+                 phone="03-1234-5678"),
+        Customer(customer_id="C002", company_name="東洋エンジニアリング株式会社",
+                 contact_name="鈴木 次郎", address1="神奈川県横浜市中区港町2-3-4",
+                 address2="横浜市中区, 神奈川県", email="suzuki@toyo-eng.co.jp",
+                 phone="045-234-5678"),
+        Customer(customer_id="C003", company_name="大阪精機工業株式会社",
+                 contact_name="田中 三郎", address1="大阪府大阪市西区阿波座3-5-6",
+                 address2="大阪市西区, 大阪府", email="tanaka@osaka-seiki.co.jp",
+                 phone="06-3456-7890"),
+        Customer(customer_id="C004", company_name="名古屋テクノ株式会社",
+                 contact_name="伊藤 花子", address1="愛知県名古屋市中村区名駅4-7-8",
+                 address2="名古屋市中村区, 愛知県", email="ito@nagoya-techno.co.jp",
+                 phone="052-456-7890"),
+        Customer(customer_id="C005", company_name="九州メカトロニクス株式会社",
+                 contact_name="渡辺 太郎", address1="福岡県福岡市博多区博多駅前5-9-10",
+                 address2="福岡市博多区, 福岡県", email="watanabe@kyushu-mec.co.jp",
+                 phone="092-567-8901"),
+        Customer(customer_id="C006", company_name="北海道産業機械株式会社",
+                 contact_name="佐藤 洋子", address1="北海道札幌市中央区北一条西6-11-12",
+                 address2="札幌市中央区, 北海道", email="sato@hokkaido-im.co.jp",
+                 phone="011-678-9012"),
+        Customer(customer_id="C007", company_name="東北精密工業株式会社",
+                 contact_name="高橋 健一", address1="宮城県仙台市青葉区一番町7-13-14",
+                 address2="仙台市青葉区, 宮城県", email="takahashi@tohoku-seimitsu.co.jp",
+                 phone="022-789-0123"),
+        Customer(customer_id="C008", company_name="中部機器製造株式会社",
+                 contact_name="小林 美咲", address1="静岡県浜松市中区砂山町8-15-16",
+                 address2="浜松市中区, 静岡県", email="kobayashi@chubu-kiki.co.jp",
+                 phone="053-890-1234"),
+        Customer(customer_id="C009", company_name="関西エレクトロメカ株式会社",
+                 contact_name="加藤 拓也", address1="兵庫県神戸市中央区三宮町9-17-18",
+                 address2="神戸市中央区, 兵庫県", email="kato@kansai-em.co.jp",
+                 phone="078-901-2345"),
+        Customer(customer_id="C010", company_name="四国システム工業株式会社",
+                 contact_name="吉田 裕子", address1="香川県高松市番町10-19-20",
+                 address2="高松市, 香川県", email="yoshida@shikoku-si.co.jp",
+                 phone="087-012-3456"),
+    ]
+    db.add_all(customers)
+    db.flush()
+
+    customer_ids = [c.customer_id for c in customers]
+
+    # -----------------------------------------------------------------------
     # Load CAD file list (catalog or live scan)
     # -----------------------------------------------------------------------
     raw = _load_cad_files()   # list of (category, cad_file_name)
@@ -698,6 +748,7 @@ def seed(db):
                 part_id         = part.part_id,
                 production_type = ptype,
                 vendor_id       = vendor_id,
+                customer_id     = rng.choice(customer_ids),
                 quantity        = qty,
                 unit_cost_jpy   = float(unit_cost),
                 lead_time_days  = lead_days,
@@ -751,6 +802,7 @@ def seed(db):
 
     print(
         f"\nDatabase seeded successfully:\n"
+        f"  Customers        : {len(customers)}\n"
         f"  Vendors          : {len(vendors)}\n"
         f"  Parts            : {len(parts)}\n"
         f"  BOM rows         : {len(bom)}\n"

@@ -36,12 +36,24 @@ export interface ProductionOrder {
   part_id: string
   production_type: 'in_house' | 'outsource' | 'purchase'
   vendor_id: string | null
+  customer_id: string
+  customer_name: string | null
   quantity: number
   unit_cost_jpy: number
   lead_time_days: number
   delivery_date: string
   quality_result: 'pass' | 'conditional' | 'fail'
   notes: string | null
+}
+
+export interface Customer {
+  customer_id: string
+  company_name: string
+  contact_name: string
+  address1: string
+  address2: string
+  email: string
+  phone: string
 }
 
 export interface CostSummaryEntry {

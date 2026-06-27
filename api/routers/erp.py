@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel
 from db.database import get_db
-from db.models import Part, ProductionOrder, Vendor, PurchaseItem
+from db.models import Part, ProductionOrder, Vendor, PurchaseItem, Customer
 from api.routers.plm import part_to_dict
 
 router = APIRouter()
@@ -16,17 +16,32 @@ query_router = APIRouter()
 # ---------------------------------------------------------------------------
 
 def order_to_dict(o: ProductionOrder) -> dict[str, Any]:
+    customer_name = o.customer.company_name if o.customer else None
     return {
         "order_id": o.order_id,
         "part_id": o.part_id,
         "production_type": o.production_type,
         "vendor_id": o.vendor_id,
+        "customer_id": o.customer_id,
+        "customer_name": customer_name,
         "quantity": o.quantity,
         "unit_cost_jpy": o.unit_cost_jpy,
         "lead_time_days": o.lead_time_days,
         "delivery_date": str(o.delivery_date),
         "quality_result": o.quality_result,
         "notes": o.notes,
+    }
+
+
+def customer_to_dict(c: Customer) -> dict[str, Any]:
+    return {
+        "customer_id": c.customer_id,
+        "company_name": c.company_name,
+        "contact_name": c.contact_name,
+        "address1": c.address1,
+        "address2": c.address2,
+        "email": c.email,
+        "phone": c.phone,
     }
 
 
@@ -144,6 +159,34 @@ def get_recommendation(part_id: str, db: Session = Depends(get_db)):
     _require_part(part_id, db)
     orders = db.query(ProductionOrder).filter(ProductionOrder.part_id == part_id).all()
     return {"part_id": part_id, "recommendation": _recommendation(orders, db)}
+
+
+@router.get("/customers")
+def list_customers(db: Session = Depends(get_db)):
+    customers = db.query(Customer).order_by(Customer.customer_id).all()
+    return {"items": [customer_to_dict(c) for c in customers]}
+
+
+@router.get("/customers/{customer_id}")
+def get_customer(customer_id: str, db: Session = Depends(get_db)):
+    customer = db.get(Customer, customer_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail=f"Customer '{customer_id}' not found")
+    return customer_to_dict(customer)
+
+
+@router.get("/customers/{customer_id}/production-history")
+def get_customer_production_history(customer_id: str, db: Session = Depends(get_db)):
+    customer = db.get(Customer, customer_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail=f"Customer '{customer_id}' not found")
+    orders = (
+        db.query(ProductionOrder)
+        .filter(ProductionOrder.customer_id == customer_id)
+        .order_by(ProductionOrder.delivery_date)
+        .all()
+    )
+    return {"customer_id": customer_id, "orders": [order_to_dict(o) for o in orders]}
 
 
 @router.get("/vendors")

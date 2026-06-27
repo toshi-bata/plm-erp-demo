@@ -196,6 +196,7 @@ export default function PartDetailPage() {
                   <th className="px-4 py-3 text-left">Order ID</th>
                   <th className="px-4 py-3 text-left">Type</th>
                   <th className="px-4 py-3 text-left">Vendor</th>
+                  <th className="px-4 py-3 text-left">Customer</th>
                   <th className="px-4 py-3 text-right">Qty</th>
                   <th className="px-4 py-3 text-right">Unit Cost (¥)</th>
                   <th className="px-4 py-3 text-right">Lead (days)</th>
@@ -212,6 +213,11 @@ export default function PartDetailPage() {
                       {o.vendor_id ? (
                         <Link to={`/vendors/${o.vendor_id}`} className="text-indigo-700 hover:underline">{o.vendor_id}</Link>
                       ) : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link to={`/customers/${o.customer_id}`} className="text-indigo-700 hover:underline">
+                        {o.customer_name ?? o.customer_id}
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-right">{o.quantity}</td>
                     <td className="px-4 py-3 text-right">{fmt(o.unit_cost_jpy)}</td>

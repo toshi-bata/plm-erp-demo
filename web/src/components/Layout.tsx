@@ -5,6 +5,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const nav = [
     { to: '/parts', label: 'Parts' },
     { to: '/vendors', label: 'Vendors' },
+    { to: '/customers', label: 'Customers' },
   ]
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">

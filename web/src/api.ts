@@ -8,6 +8,7 @@ import type {
   Recommendation,
   Vendor,
   PurchaseItem,
+  Customer,
 } from './types'
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8010'
@@ -65,3 +66,13 @@ export const fetchVendorProductionHistory = (vendorId: string) =>
 
 export const fetchVendorPurchaseItems = (vendorId: string) =>
   get<{ vendor_id: string; items: PurchaseItem[] }>(`/erp/vendors/${vendorId}/purchase-items`)
+
+// Customers
+export const fetchCustomers = () =>
+  get<{ items: Customer[] }>('/erp/customers')
+
+export const fetchCustomer = (customerId: string) =>
+  get<Customer>(`/erp/customers/${customerId}`)
+
+export const fetchCustomerProductionHistory = (customerId: string) =>
+  get<{ customer_id: string; orders: ProductionOrder[] }>(`/erp/customers/${customerId}/production-history`)

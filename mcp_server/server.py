@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from fastmcp import FastMCP
 from db.database import SessionLocal
-from db.models import Part, ProductionOrder, Vendor
+from db.models import Part, ProductionOrder, Vendor, Customer
 
 mcp = FastMCP(
     name="PLM ERP Demo",
@@ -42,10 +42,13 @@ def _part_to_dict(p: Part) -> dict:
 
 
 def _order_to_dict(o: ProductionOrder) -> dict:
+    customer_name = o.customer.company_name if o.customer else None
     return {
         "order_id": o.order_id,
         "production_type": o.production_type,
         "vendor_id": o.vendor_id,
+        "customer_id": o.customer_id,
+        "customer_name": customer_name,
         "quantity": o.quantity,
         "unit_cost_jpy": o.unit_cost_jpy,
         "lead_time_days": o.lead_time_days,
@@ -107,6 +110,50 @@ def _recommendation(orders: list[ProductionOrder], db) -> dict:
 # ---------------------------------------------------------------------------
 # MCP Tools
 # ---------------------------------------------------------------------------
+
+@mcp.tool()
+def list_customers() -> list[dict]:
+    """Return all customers (取引先/発注元) registered in the system."""
+    db = SessionLocal()
+    try:
+        customers = db.query(Customer).order_by(Customer.customer_id).all()
+        return [
+            {
+                "customer_id": c.customer_id,
+                "company_name": c.company_name,
+                "contact_name": c.contact_name,
+                "address1": c.address1,
+                "address2": c.address2,
+                "email": c.email,
+                "phone": c.phone,
+            }
+            for c in customers
+        ]
+    finally:
+        db.close()
+
+
+@mcp.tool()
+def get_customer(customer_id: str) -> dict:
+    """Return details for a single customer by customer_id."""
+    db = SessionLocal()
+    try:
+        c = db.get(Customer, customer_id)
+        if not c:
+            return {"found": False, "customer_id": customer_id}
+        return {
+            "found": True,
+            "customer_id": c.customer_id,
+            "company_name": c.company_name,
+            "contact_name": c.contact_name,
+            "address1": c.address1,
+            "address2": c.address2,
+            "email": c.email,
+            "phone": c.phone,
+        }
+    finally:
+        db.close()
+
 
 @mcp.tool()
 def get_part_by_cad_file(cad_file_name: str) -> dict:
