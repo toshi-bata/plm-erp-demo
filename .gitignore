@@ -21,3 +21,13 @@ fabwave/
 # Generated quotations (keep folder, ignore contents)
 demo/quotations/*
 !demo/quotations/.gitkeep
+
+# Demo working files
+demo/unpacked/
+demo/values.json
+
+# Root-level package-lock (belongs in web/)
+package-lock.json
+
+# TypeScript build cache
+web/tsconfig.tsbuildinfo
