@@ -33,12 +33,16 @@ uv run python -m db.init_db
 
 # Korean customers / KRW
 uv run python -m db.init_db --locale KR
+
+# Chinese customers / CNY
+uv run python -m db.init_db --locale CN
 ```
 
 | Option | Customers | Currency | Amount range (unit cost) |
 |--------|-----------|----------|--------------------------|
 | *(none)* or `--locale JP` | 10 Japanese companies | JPY (円) | 20 – 8,000 |
 | `--locale KR` | 10 Korean companies | KRW (원) | 200 – 80,000 |
+| `--locale CN` | 10 Chinese companies | CNY (元) | 1 – 400 |
 
 This creates `plm_erp.db` in the project root and populates all tables.
 
@@ -69,9 +73,9 @@ VITE_API_BASE_URL=http://localhost:8010
 
 ### 5. Register the MCP server with Claude Desktop
 
-Claude Desktop manages the MCP server process automatically via stdio  E**no manual server startup required.**
+Claude Desktop manages the MCP server process automatically via stdio — **no manual server startup required.**
 
-In Claude Desktop, go to **Settings ↁEDeveloper ↁEEdit Config** to open the config file.
+In Claude Desktop, go to **Settings → Developer → Edit Config** to open the config file.
 
 Add the following entry (adjust the directory path as needed):
 
@@ -91,10 +95,10 @@ Add the following entry (adjust the directory path as needed):
 }
 ```
 
-> **Windows の注意事頁E*  
-> Claude Desktop はシスチE��の `PATH` を継承しなぁE��め、`uv` が見つからずエラーになることがあります、E 
-> そ�E場合�E `command` に `uv` のフルパスを指定してください、E 
-> `uv` のパスは PowerShell で `where.exe uv` を実行すると確認できます（侁E `C:\Users\username\.local\bin\uv.exe`�E�、E
+> **Note for Windows users**  
+> Claude Desktop does not inherit the system `PATH`, so `uv` may not be found.  
+> In that case, specify the full path to `uv` in the `command` field.  
+> Run `where.exe uv` in PowerShell to find the path (e.g. `C:\Users\username\.local\bin\uv.exe`).
 >
 > ```json
 > {
@@ -112,7 +116,7 @@ Add the following entry (adjust the directory path as needed):
 > }
 > ```
 
-Restart Claude Desktop. The MCP server will appear under **Settings ↁEDeveloper**.
+Restart Claude Desktop. The MCP server will appear under **Settings → Developer**.
 
 #### HTTP mode (optional)
 
@@ -140,7 +144,7 @@ uv run mcp_server/server.py --http
 | GET | `/erp/parts/{part_id}/production-history` | All production orders for a part |
 | GET | `/erp/parts/{part_id}/cost-summary` | Avg/min/max cost by production type |
 | GET | `/erp/parts/{part_id}/recommendation` | Cheapest / fastest / best-quality option |
-| POST | `/query/by-cad-files` | **Bulk lookup**  Eprimary endpoint for Claude |
+| POST | `/query/by-cad-files` | **Bulk lookup** — primary endpoint for Claude |
 
 ### Bulk query example
 
@@ -160,7 +164,7 @@ curl -X POST http://localhost:8010/query/by-cad-files \
 | `get_production_history(part_id)` | Full order history |
 | `get_cost_summary(part_id)` | Cost stats by production type |
 | `get_recommendation(part_id)` | Cheapest / fastest / best-quality |
-| `query_by_cad_files(cad_file_names)` | **Main tool**  Ebulk lookup |
+| `query_by_cad_files(cad_file_names)` | **Main tool** — bulk lookup |
 
 ---
 
@@ -177,7 +181,7 @@ curl -X POST http://localhost:8010/query/by-cad-files \
    - *"Has this casting had any quality failures in the past three years?"*
    - *"What is the fastest sourcing option for this shaft assembly?"*
 
-No HOOPS AI integration code lives in this repository  Eit is a pure data service.
+No HOOPS AI integration code lives in this repository — it is a pure data service.
 
 ---
 
