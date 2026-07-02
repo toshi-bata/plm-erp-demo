@@ -534,9 +534,52 @@ def seed(db, locale: str = "JP"):
 
     # -----------------------------------------------------------------------
     # Customers (取引先 / 発注元)
-    # locale="JP" : 日本企業10社  locale="KR" : 韓国企業10社
+    # locale="JP" : 日本企業10社  locale="KR" : 韓国企業10社  locale="CN" : 中国企業10社
     # -----------------------------------------------------------------------
-    if locale == "KR":
+    if locale == "CN":
+        customers = [
+            Customer(customer_id="C001", company_name="上海精密机械有限公司",
+                     contact_name="张伟", address1="上海市浦东新区张江高科技园区1号",
+                     address2="浦东新区, 上海市", email="zhang@sh-precision.com.cn",
+                     phone="021-1234-5678"),
+            Customer(customer_id="C002", company_name="北京航天工程技术有限公司",
+                     contact_name="李芳", address1="北京市海淀区中关村科技园2-3号",
+                     address2="海淀区, 北京市", email="li@bj-aerospace-eng.com.cn",
+                     phone="010-2345-6789"),
+            Customer(customer_id="C003", company_name="广州机电制造股份有限公司",
+                     contact_name="王强", address1="广州市天河区高新技术产业开发区3-5号",
+                     address2="天河区, 广州市", email="wang@gz-mechatronics.com.cn",
+                     phone="020-3456-7890"),
+            Customer(customer_id="C004", company_name="深圳智能装备科技有限公司",
+                     contact_name="刘洋", address1="深圳市南山区科技园南区4-7号",
+                     address2="南山区, 深圳市", email="liu@sz-intelligent.com.cn",
+                     phone="0755-456-7890"),
+            Customer(customer_id="C005", company_name="成都西部精工股份有限公司",
+                     contact_name="陈静", address1="成都市高新区天府大道5-9号",
+                     address2="高新区, 成都市", email="chen@cd-westprecision.com.cn",
+                     phone="028-567-8901"),
+            Customer(customer_id="C006", company_name="武汉重型机械有限公司",
+                     contact_name="赵磊", address1="武汉市武昌区东湖高新技术开发区6-11号",
+                     address2="武昌区, 武汉市", email="zhao@wh-heavymach.com.cn",
+                     phone="027-678-9012"),
+            Customer(customer_id="C007", company_name="苏州纳米精密制造有限公司",
+                     contact_name="孙燕", address1="苏州市工业园区独墅湖科教创新区7-13号",
+                     address2="工业园区, 苏州市", email="sun@sz-nanoprecision.com.cn",
+                     phone="0512-789-0123"),
+            Customer(customer_id="C008", company_name="天津滨海新区机械工程有限公司",
+                     contact_name="周建国", address1="天津市滨海新区经济技术开发区8-15号",
+                     address2="滨海新区, 天津市", email="zhou@tj-binhai-mech.com.cn",
+                     phone="022-890-1234"),
+            Customer(customer_id="C009", company_name="西安航空动力技术有限公司",
+                     contact_name="吴雪梅", address1="西安市高新技术产业开发区9-17号",
+                     address2="高新区, 西安市", email="wu@xa-aviationpower.com.cn",
+                     phone="029-901-2345"),
+            Customer(customer_id="C010", company_name="杭州数控机床有限公司",
+                     contact_name="郑浩然", address1="杭州市滨江区高新技术产业园10-19号",
+                     address2="滨江区, 杭州市", email="zheng@hz-cncmachine.com.cn",
+                     phone="0571-012-3456"),
+        ]
+    elif locale == "KR":
         customers = [
             Customer(customer_id="C001", company_name="한국정밀기계 주식회사",
                      contact_name="김민준", address1="서울특별시 강남구 테헤란로 1-1",
@@ -758,9 +801,11 @@ def seed(db, locale: str = "JP"):
         n_orders = rng.choices(range(6), weights=ORDER_COUNT_WEIGHTS)[0]
 
         # Base unit cost for this part; larger lots get same or lower price
-        # KR locale: amounts in KRW (~10x JPY)  JP locale: amounts in JPY
+        # KR locale: amounts in KRW (~10x JPY)  CN locale: amounts in CNY (~1/20 JPY)  JP locale: amounts in JPY
         if locale == "KR":
             base_unit_cost = round(rng.uniform(200.0, 80000.0), 0)
+        elif locale == "CN":
+            base_unit_cost = round(rng.uniform(1.0, 400.0), 0)
         else:
             base_unit_cost = round(rng.uniform(20.0, 8000.0), 0)
 
@@ -825,9 +870,11 @@ def seed(db, locale: str = "JP"):
             continue
         rng = random.Random(part.cad_file_name + "_pi")
         vendor_id = rng.choice(cfg["vendor_purchase"])
-        # KR locale: catalog price in KRW (~10x JPY)  JP locale: in JPY
+        # KR locale: catalog price in KRW (~10x JPY)  CN locale: in CNY (~1/20 JPY)  JP locale: in JPY
         if locale == "KR":
             catalog_price = round(rng.uniform(100.0, 50000.0), 0)
+        elif locale == "CN":
+            catalog_price = round(rng.uniform(1.0, 250.0), 0)
         else:
             catalog_price = round(rng.uniform(10.0, 5000.0), 0)
         moq  = rng.choice([10, 25, 50, 100, 200, 500])
@@ -874,13 +921,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Initialize PLM/ERP demo database")
     parser.add_argument(
         "--locale",
-        choices=["JP", "KR"],
+        choices=["JP", "KR", "CN"],
         default="JP",
-        help="Customer locale and currency: JP=日本円/日本企業 (default), KR=韓国ウォン/韓国企業",
+        help="Customer locale and currency: JP=日本円/日本企業 (default), KR=韓国ウォン/韓国企業, CN=人民元/中国企業",
     )
     args = parser.parse_args()
 
-    print(f"Locale: {args.locale}  ({'JPY / Japanese customers' if args.locale == 'JP' else 'KRW / Korean customers'})")
+    locale_label = {"JP": "JPY / Japanese customers", "KR": "KRW / Korean customers", "CN": "CNY / Chinese customers"}
+    print(f"Locale: {args.locale}  ({locale_label[args.locale]})")
     print("Creating tables …")
     create_tables()
     db = SessionLocal()
